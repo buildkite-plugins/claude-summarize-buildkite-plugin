@@ -16,4 +16,4 @@ steps:
   - label: ":book: Lint"
     plugins:
       - plugin-linter#v3.3.0:
-          id: mcncl/claude-code
+          id: claude-summarize
