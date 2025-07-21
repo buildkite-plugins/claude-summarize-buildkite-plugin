@@ -1,4 +1,4 @@
-name: Claude Code
+name: Claude Summarize
 description: AI-powered build analysis and error diagnosis using Claude
 author: https://github.com/mcncl
 requirements:
