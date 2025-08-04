@@ -12,6 +12,10 @@ configuration:
     buildkite_api_token:
       type: string
       description: Buildkite API token for fetching job logs (optional, will use environment BUILDKITE_API_TOKEN if not specified)
+    anthropic_base_url:
+      type: string
+      description: Custom Anthropic API base URL (optional, defaults to https://api.anthropic.com)
+      default: https://api.anthropic.com
     model:
       type: string
       description: Claude model to use

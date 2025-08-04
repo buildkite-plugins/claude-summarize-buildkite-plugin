@@ -16,6 +16,13 @@ function get_buildkite_api_token() {
   fi
 }
 
+# Get the Anthropic base URL from plugin config
+function get_anthropic_base_url() {
+  local base_url=""
+  base_url=$(plugin_read_config ANTHROPIC_BASE_URL "https://api.anthropic.com")
+  echo "${base_url}"
+}
+
 # Reads either a value or a list from the given env prefix
 function prefix_read_list() {
   local prefix="$1"
@@ -97,6 +104,7 @@ function call_claude_api() {
   local model="$2"
   local prompt="$3"
   local timeout="${4:-60}"
+  local base_url="${5:-https://api.anthropic.com}"
 
   local response_file="/tmp/claude_response_${BUILDKITE_BUILD_ID}.json"
   local debug_file="/tmp/claude_debug_${BUILDKITE_BUILD_ID}.txt"
@@ -110,8 +118,8 @@ function call_claude_api() {
   fi
 
   # Check if we can reach the API endpoint
-  if ! curl -s --max-time 5 -o /dev/null https://api.anthropic.com/v1/ping; then
-    echo "Error: Cannot reach Anthropic API. Please check your network connectivity." >&2
+  if ! curl -s --max-time 5 -o /dev/null "${base_url}/v1/ping"; then
+    echo "Error: Cannot reach Anthropic API at ${base_url}. Please check your network connectivity." >&2
     echo "Error: Network connectivity issue - cannot reach Anthropic API" > "${response_file}"
     return 1
   fi
@@ -152,7 +160,7 @@ function call_claude_api() {
     -H "x-api-key: ${api_key}" \
     -H "anthropic-version: 2023-06-01" \
     -d "@${payload_file}" \
-    "https://api.anthropic.com/v1/messages" \
+    "${base_url}/v1/messages" \
     -o "${response_file}" 2>> "${debug_file}")
   if [ "${http_code}" -ne 200 ]; then
     echo "Claude API call failed with HTTP code ${http_code}" >&2
@@ -462,6 +470,7 @@ function analyze_build_failure() {
   local analysis_level="${7:-step}"
   local compare_builds="${8:-false}"
   local comparison_range="${9:-5}"
+  local base_url="${10:-https://api.anthropic.com}"
 
   # Get build information
   local build_info="Build: ${BUILDKITE_PIPELINE_SLUG} #${BUILDKITE_BUILD_NUMBER}
@@ -699,14 +708,14 @@ ${custom_prompt}"
   fi
 
   # Test network connectivity first
-  if ! curl -s --max-time 10 -o /dev/null https://api.anthropic.com; then
-    echo "Network connectivity test failed - cannot reach api.anthropic.com" >&2
+  if ! curl -s --max-time 10 -o /dev/null "${base_url}"; then
+    echo "Network connectivity test failed - cannot reach ${base_url}" >&2
     return 1
   fi
 
   # Call Claude API
   local response_file
-  if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}"); then
+  if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}" "${base_url}"); then
     local analysis
     analysis=$(extract_claude_response "${response_file}")
     echo "${analysis}"

@@ -10,6 +10,7 @@ function validate_configuration() {
   local analysis_level="$4"
   local compare_builds="$5"
   local buildkite_api_token="$6"
+  local anthropic_base_url="$7"
   
   local errors=0
   
@@ -34,6 +35,12 @@ function validate_configuration() {
   # Validate analysis_level
   if [[ ! "${analysis_level}" =~ ^(step|build)$ ]]; then
     echo "❌ Error: analysis_level must be one of: step, build. Got: ${analysis_level}" >&2
+    errors=$((errors + 1))
+  fi
+  
+  # Validate anthropic_base_url format
+  if [[ ! "${anthropic_base_url}" =~ ^https?:// ]]; then
+    echo "❌ Error: anthropic_base_url must start with http:// or https://. Got: ${anthropic_base_url}" >&2
     errors=$((errors + 1))
   fi
   
