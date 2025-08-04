@@ -30,6 +30,7 @@ ANNOTATE=$(plugin_read_config ANNOTATE "true")
 AGENT_FILE=$(plugin_read_config AGENT_FILE "false")
 COMPARE_BUILDS=$(plugin_read_config COMPARE_BUILDS "false")
 COMPARISON_RANGE=$(plugin_read_config COMPARISON_RANGE "5")
+ANTHROPIC_BASE_URL=$(plugin_read_config ANTHROPIC_BASE_URL "https://api.anthropic.com")
 
 # API key validation already done above - no need to check again
 
@@ -41,7 +42,7 @@ COMPARISON_RANGE=$(plugin_read_config COMPARISON_RANGE "5")
 validate_tools || exit 1
 
 # Validate configuration
-validate_configuration "${API_KEY}" "${MODEL}" "${TRIGGER}" "${ANALYSIS_LEVEL}" "${COMPARE_BUILDS}" "$(plugin_read_config BUILDKITE_API_TOKEN "")" || exit 1
+validate_configuration "${API_KEY}" "${MODEL}" "${TRIGGER}" "${ANALYSIS_LEVEL}" "${COMPARE_BUILDS}" "$(plugin_read_config BUILDKITE_API_TOKEN "")" "${ANTHROPIC_BASE_URL}" || exit 1
 
 echo "--- :robot_face: Claude Code Plugin (Post-Command)"
 echo "Model: ${MODEL}"
@@ -64,7 +65,7 @@ if should_trigger_analysis "${TRIGGER}" "${COMMAND_EXIT_STATUS}"; then
 
   # Perform analysis (disable exit on error temporarily)
   set +e
-  ANALYSIS=$(analyze_build_failure "${API_KEY}" "${MODEL}" "${MAX_LOG_LINES}" "${CUSTOM_PROMPT}" "${TIMEOUT}" "${AGENT_FILE}" "${ANALYSIS_LEVEL}" "${COMPARE_BUILDS}" "${COMPARISON_RANGE}")
+  ANALYSIS=$(analyze_build_failure "${API_KEY}" "${MODEL}" "${MAX_LOG_LINES}" "${CUSTOM_PROMPT}" "${TIMEOUT}" "${AGENT_FILE}" "${ANALYSIS_LEVEL}" "${COMPARE_BUILDS}" "${COMPARISON_RANGE}" "${ANTHROPIC_BASE_URL}")
   ANALYSIS_EXIT_CODE=$?
   set -e
 
@@ -167,7 +168,7 @@ $([ "${COMPARE_BUILDS}" = "true" ] && echo "- Historical Comparison: Last ${COMP
 
 **Resolution Steps:**
 1. Verify your Anthropic API key is correctly configured
-2. Check network connectivity to \`api.anthropic.com\`
+2. Check network connectivity to your configured Anthropic API endpoint
 3. Ensure the Buildkite agent has internet access
 4. Visit [status.anthropic.com](https://status.anthropic.com/) to check service status
 

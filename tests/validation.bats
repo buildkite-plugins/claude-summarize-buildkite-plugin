@@ -13,52 +13,59 @@ setup() {
 }
 
 @test "Validate configuration succeeds with valid inputs" {
-  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "step" "false" ""
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "step" "false" "" "https://api.anthropic.com"
   
   assert_success
   refute_output --partial "Error"
 }
 
 @test "Validate configuration fails with missing API key" {
-  run validate_configuration "" "claude-3-opus" "on-failure" "step" "false" ""
+  run validate_configuration "" "claude-3-opus" "on-failure" "step" "false" "" "https://api.anthropic.com"
   
   assert_failure
   assert_output --partial "Error: api_key is required"
 }
 
 @test "Validate configuration fails with invalid model" {
-  run validate_configuration "sk-ant-test-key" "not-claude" "on-failure" "step" "false" ""
+  run validate_configuration "sk-ant-test-key" "not-claude" "on-failure" "step" "false" "" "https://api.anthropic.com"
   
   assert_failure
   assert_output --partial "Error: model must be a valid Claude model"
 }
 
 @test "Validate configuration fails with invalid trigger" {
-  run validate_configuration "sk-ant-test-key" "claude-3-opus" "invalid-trigger" "step" "false" ""
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "invalid-trigger" "step" "false" "" "https://api.anthropic.com"
   
   assert_failure
   assert_output --partial "Error: trigger must be one of: on-failure, always, manual"
 }
 
 @test "Validate configuration fails with invalid analysis level" {
-  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "invalid-level" "false" ""
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "invalid-level" "false" "" "https://api.anthropic.com"
   
   assert_failure
   assert_output --partial "Error: analysis_level must be one of: step, build"
 }
 
 @test "Validate configuration warns about missing API token for build level" {
-  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "build" "false" ""
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "build" "false" "" "https://api.anthropic.com"
   
   assert_success
   assert_output --partial "Warning: build-level analysis works best with a Buildkite API token"
 }
 
 @test "Validate configuration warns about missing API token for build comparison" {
-  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "step" "true" ""
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "step" "true" "" "https://api.anthropic.com"
   
   assert_success
   assert_output --partial "Warning: build comparison requires a Buildkite API token"
+}
+
+@test "Validate configuration fails with invalid base URL" {
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "step" "false" "" "invalid-url"
+  
+  assert_failure
+  assert_output --partial "Error: anthropic_base_url must start with http:// or https://"
 }
 
 @test "Validate tools succeeds with available tools" {
