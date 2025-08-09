@@ -76,7 +76,7 @@ setup() {
 
 @test "Validate tools fails when curl is missing" {
   # Mock commands
-  # shellcheck disable=SC2329
+  # shellcheck disable=SC2329  # Mock command for BATS test; intentional redefinition
   command() {
     if [[ "$*" == *"curl"* ]]; then
       return 1
