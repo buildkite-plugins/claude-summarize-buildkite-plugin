@@ -63,7 +63,7 @@ setup() {
 
 @test "Validate tools succeeds with available tools" {
   # Mock commands
-  # shellcheck disable=SC2329
+  # shellcheck disable=SC2329  # Mock command for BATS test; intentional redefinition
   command() {
     return 0
   }
