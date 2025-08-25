@@ -20,6 +20,7 @@ if [ -z "${API_KEY}" ]; then
 fi
 
 # Plugin configuration is loaded
+BEDROCK=$(plugin_read_config BEDROCK "false")
 MODEL=$(plugin_read_config MODEL "claude-3-7-sonnet-20250219")
 TRIGGER=$(plugin_read_config TRIGGER "on-failure")
 ANALYSIS_LEVEL=$(plugin_read_config ANALYSIS_LEVEL "step")
@@ -41,9 +42,16 @@ COMPARISON_RANGE=$(plugin_read_config COMPARISON_RANGE "5")
 validate_tools || exit 1
 
 # Validate configuration
-validate_configuration "${API_KEY}" "${MODEL}" "${TRIGGER}" "${ANALYSIS_LEVEL}" "${COMPARE_BUILDS}" "$(plugin_read_config BUILDKITE_API_TOKEN "")" || exit 1
+validate_configuration "${API_KEY}" "${BEDROCK}" "${MODEL}" "${TRIGGER}" "${ANALYSIS_LEVEL}" "${COMPARE_BUILDS}" "$(plugin_read_config BUILDKITE_API_TOKEN "")" || exit 1
 
 echo "--- :robot_face: Claude Code Plugin (Post-Command)"
+
+if [ "${BEDROCK}" = "true" ]; then
+  echo "Access mode: Amazon Bedrock"
+else
+  echo "Access mode: Anthropic API"
+fi
+
 echo "Model: ${MODEL}"
 echo "Trigger: ${TRIGGER}"
 echo "Analysis Level: ${ANALYSIS_LEVEL}"

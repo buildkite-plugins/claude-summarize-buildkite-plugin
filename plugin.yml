@@ -12,6 +12,10 @@ configuration:
     buildkite_api_token:
       type: string
       description: Buildkite API token for fetching job logs (optional, will use environment BUILDKITE_API_TOKEN if not specified)
+    bedrock:
+      type: boolean
+      description: Access Anthropic through Amazon Bedrock?
+      default: false
     model:
       type: string
       description: Claude model to use

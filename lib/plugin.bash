@@ -162,6 +162,82 @@ function call_claude_api() {
   echo "${response_file}"
 }
 
+# Call AWS Bedrock API for analysis
+function call_bedrock_api() {
+  local prompt="$1"
+  local timeout="${2:-60}"
+
+  local response_file="/tmp/claude_bedrock_response_${BUILDKITE_BUILD_ID}.json"
+  local debug_file="/tmp/claude_bedrock_debug_${BUILDKITE_BUILD_ID}.txt"
+
+  echo "--- :robot_face: Analyzing with Claude via AWS Bedrock" >&2
+
+  # For tests, if the response file already exists, use it directly
+  if [ -f "${response_file}" ]; then
+    echo "Using existing response file for testing"
+    return 0
+  fi
+
+  # Foundation model ID for access checks
+  local foundation_model_id="anthropic.claude-3-7-sonnet-20250219-v1:0"
+  # Inference profile ID for actual invocation
+  local inference_profile_id="us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+
+  # Initialize debug file
+  echo "Claude Bedrock API Debug Log" > "${debug_file}"
+  echo "Timestamp: $(date)" >> "${debug_file}"
+  echo "Foundation Model: ${foundation_model_id}" >> "${debug_file}"
+  echo "Inference Profile: ${inference_profile_id}" >> "${debug_file}"
+
+  # Check if foundation model is accessible in your account
+  echo "Verifying Bedrock model access..." >&2
+  if ! aws bedrock get-foundation-model \
+    --model-identifier "${foundation_model_id}" \
+    --output json > /dev/null 2>> "${debug_file}"; then
+
+    echo "Error: Model ${foundation_model_id} is not accessible in your Bedrock account" >&2
+    echo "Please check:" >&2
+    echo "- Model is enabled in your AWS account via Bedrock console" >&2
+    echo "- You have bedrock:GetFoundationModel permission" >&2
+    echo "- You're in the correct AWS region" >&2
+    echo "Foundation model access check failed" >> "${debug_file}"
+    return 1
+  fi
+
+  echo "Model access verified ✓" >&2
+  echo "Foundation model access verified" >> "${debug_file}"
+
+  # Prepare the request body using jq
+  local request_body
+  request_body=$(jq -n \
+    --arg prompt "$prompt" \
+    '{
+      "messages": [{"role": "user", "content": $prompt}],
+      "max_tokens": 4000,
+      "anthropic_version": "bedrock-2023-05-31"
+    }')
+
+  echo "Calling Claude via AWS Bedrock..." >&2
+
+  # Make the Bedrock API call using the inference profile
+  if aws bedrock-runtime invoke-model \
+    --model-id "$inference_profile_id" \
+    --body "$request_body" \
+    --cli-binary-format raw-in-base64-out \
+    "$response_file" > /dev/null 2>> "${debug_file}"; then
+
+    echo "Bedrock API call successful" >> "${debug_file}"
+  else
+    echo "Error: Bedrock API call failed" >&2
+    echo "Check debug file for details: ${debug_file}" >&2
+    echo "Bedrock API call failed" >> "${debug_file}"
+    return 1
+  fi
+
+  # Return the response file path
+  echo "${response_file}"
+}
+
 # Extract Claude's response content
 function extract_claude_response() {
   local response_file="$1"
@@ -698,22 +774,36 @@ ${custom_prompt}"
     return 0
   fi
 
-  # Test network connectivity first
-  if ! curl -s --max-time 10 -o /dev/null https://api.anthropic.com; then
-    echo "Network connectivity test failed - cannot reach api.anthropic.com" >&2
-    return 1
-  fi
-
-  # Call Claude API
+  # Call Claude API (either direct or via Bedrock)
   local response_file
-  if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}"); then
-    local analysis
-    analysis=$(extract_claude_response "${response_file}")
-    echo "${analysis}"
-    return 0
+  if [[ "${BEDROCK:-false}" == "true" ]]; then
+    # Use AWS Bedrock
+    if response_file=$(call_bedrock_api "${full_prompt}" "${timeout}"); then
+      local analysis
+      analysis=$(extract_claude_response "${response_file}")
+      echo "${analysis}"
+      return 0
+    else
+      echo "Claude Bedrock analysis failed" >&2
+      return 1
+    fi
   else
-    echo "Claude analysis failed" >&2
-    return 1
+    # Use direct Anthropic API
+    # Test network connectivity first
+    if ! curl -s --max-time 10 -o /dev/null https://api.anthropic.com; then
+      echo "Network connectivity test failed - cannot reach api.anthropic.com" >&2
+      return 1
+    fi
+
+    if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}"); then
+      local analysis
+      analysis=$(extract_claude_response "${response_file}")
+      echo "${analysis}"
+      return 0
+    else
+      echo "Claude analysis failed" >&2
+      return 1
+    fi
   fi
 }
 
