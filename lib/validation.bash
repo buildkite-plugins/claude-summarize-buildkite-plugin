@@ -5,16 +5,18 @@ set -euo pipefail
 # Returns 0 if validation passes, non-zero if validation fails
 function validate_configuration() {
   local api_key="$1"
-  local model="$2"
-  local trigger="$3"
-  local analysis_level="$4"
-  local compare_builds="$5"
-  local buildkite_api_token="$6"
+  local bedrock="$2"
+  local model="$3"
+  local trigger="$4"
+  local analysis_level="$5"
+  local compare_builds="$6"
+  local buildkite_api_token="$7"
   
   local errors=0
   
   # Check required configuration
-  if [ -z "${api_key}" ]; then
+  # Skip API key check if using Bedrock (which uses AWS credentials)
+  if [ -z "${api_key}" ] && [ "${bedrock}" != "true" ]; then
     echo "❌ Error: api_key is required for Claude Code plugin" >&2
     errors=$((errors + 1))
   fi

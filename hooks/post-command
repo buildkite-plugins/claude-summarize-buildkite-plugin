@@ -13,14 +13,15 @@ API_KEY=$(plugin_read_config API_KEY "")
 # Trim any whitespace that might be causing issues
 API_KEY=$(echo "$API_KEY" | tr -d '[:space:]')
 
+# Plugin configuration is loaded
+BEDROCK=$(plugin_read_config BEDROCK "false")
+
 # If API_KEY is still not set, this means it wasn't provided directly or via the environment hook
-if [ -z "${API_KEY}" ]; then
+# Skip this check if using Bedrock (which uses AWS credentials instead)
+if [ -z "${API_KEY}" ] && [ "${BEDROCK}" != "true" ]; then
   echo "❌ Error: api_key is required for Claude Code plugin"
   exit 1
 fi
-
-# Plugin configuration is loaded
-BEDROCK=$(plugin_read_config BEDROCK "false")
 MODEL=$(plugin_read_config MODEL "claude-3-7-sonnet-20250219")
 TRIGGER=$(plugin_read_config TRIGGER "on-failure")
 ANALYSIS_LEVEL=$(plugin_read_config ANALYSIS_LEVEL "step")
