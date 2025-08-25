@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-PLUGIN_PREFIX="CLAUDE_CODE"
+PLUGIN_PREFIX="CLAUDE_SUMMARIZE"
 
 # Get the Buildkite API token from environment or plugin config
 function get_buildkite_api_token() {
