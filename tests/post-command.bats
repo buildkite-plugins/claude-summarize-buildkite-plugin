@@ -6,7 +6,7 @@ setup() {
   load "${BATS_PLUGIN_PATH}/load.bash"
 
   # Common test variables
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_API_KEY='sk-ant-test-key'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY='sk-ant-test-key'
   export BUILDKITE_COMMAND_EXIT_STATUS='1'  # Simulate failure for most tests
   export BUILDKITE_BUILD_ID='test-build-123'
   export BUILDKITE_JOB_ID='test-job-456'
@@ -45,7 +45,7 @@ teardown() {
 }
 
 @test "Missing API key fails" {
-  unset BUILDKITE_PLUGIN_CLAUDE_CODE_API_KEY
+  unset BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY
 
   run "$PWD"/hooks/post-command
 
@@ -77,7 +77,7 @@ teardown() {
 }
 
 @test "Plugin runs on success with always trigger" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_TRIGGER='always'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_TRIGGER='always'
   export BUILDKITE_COMMAND_EXIT_STATUS='0'
 
   run "$PWD"/hooks/post-command
@@ -89,7 +89,7 @@ teardown() {
 }
 
 @test "Plugin respects manual trigger with environment variable" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_TRIGGER='manual'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_TRIGGER='manual'
   export CLAUDE_ANALYZE='true'
 
   run "$PWD"/hooks/post-command
@@ -100,7 +100,7 @@ teardown() {
 }
 
 @test "Plugin skips manual trigger without environment variable" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_TRIGGER='manual'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_TRIGGER='manual'
   export BUILDKITE_COMMAND_EXIT_STATUS='1'
 
   run "$PWD"/hooks/post-command
@@ -112,7 +112,7 @@ teardown() {
 }
 
 @test "Plugin respects manual trigger with commit message" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_TRIGGER='manual'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_TRIGGER='manual'
   export BUILDKITE_MESSAGE='Fix bug [claude-analyze] in authentication'
 
   run "$PWD"/hooks/post-command
@@ -123,7 +123,7 @@ teardown() {
 }
 
 @test "Plugin uses custom model" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_MODEL='claude-3-opus-20240229'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_MODEL='claude-3-opus-20240229'
 
   run "$PWD"/hooks/post-command
 
@@ -132,7 +132,7 @@ teardown() {
 }
 
 @test "Plugin uses custom max log lines" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_MAX_LOG_LINES='500'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_MAX_LOG_LINES='500'
 
   run "$PWD"/hooks/post-command
 
@@ -141,7 +141,7 @@ teardown() {
 }
 
 @test "Plugin handles custom prompt" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_CUSTOM_PROMPT='Focus on Node.js issues'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_CUSTOM_PROMPT='Focus on Node.js issues'
 
   run "$PWD"/hooks/post-command
 
@@ -150,7 +150,7 @@ teardown() {
 }
 
 @test "Plugin can disable annotations" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_ANNOTATE='false'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANNOTATE='false'
 
   run "$PWD"/hooks/post-command
 
@@ -165,7 +165,7 @@ teardown() {
 }
 
 @test "Plugin uses API token from configuration" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_BUILDKITE_API_TOKEN='bk-test-token'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_BUILDKITE_API_TOKEN='bk-test-token'
   export BUILDKITE_API_TOKEN='' # Ensure environment token is empty
 
   run "$PWD"/hooks/post-command
@@ -176,7 +176,7 @@ teardown() {
 
 @test "Plugin works with environment variable API key format" {
   export TEST_API_KEY='sk-ant-env-test-key'
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_API_KEY="${TEST_API_KEY}"
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="${TEST_API_KEY}"
 
   run "$PWD"/hooks/post-command
 
@@ -187,10 +187,10 @@ teardown() {
 
 @test "Plugin works with Buildkite secret API key format" {
   # Set API key directly for simplicity
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_API_KEY="sk-ant-test-from-secret"
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="sk-ant-test-from-secret"
 
   # Pretend this came from a secret
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_API_KEY_SOURCE="buildkite-secret"
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY_SOURCE="buildkite-secret"
 
   run "$PWD"/hooks/post-command
 
@@ -201,7 +201,7 @@ teardown() {
 
 @test "Plugin works with literal API key format" {
   # Test that the new unified API key configuration works with literal values
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_API_KEY='sk-ant-literal-test-key'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY='sk-ant-literal-test-key'
 
   run "$PWD"/hooks/post-command
 
@@ -211,7 +211,7 @@ teardown() {
 }
 
 @test "Plugin uses custom anthropic base URL" {
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_ANTHROPIC_BASE_URL='https://custom-claude-api.company.com'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANTHROPIC_BASE_URL='https://custom-claude-api.company.com'
 
   run "$PWD"/hooks/post-command
 

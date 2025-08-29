@@ -11,5 +11,5 @@ API_KEY=$(plugin_read_config API_KEY "")
 
 # Export API key if provided
 if [[ -n "$API_KEY" ]]; then
-  export BUILDKITE_PLUGIN_CLAUDE_CODE_API_KEY="$API_KEY"
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$API_KEY"
 fi
