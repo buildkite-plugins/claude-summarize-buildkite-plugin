@@ -1,4 +1,4 @@
-# Claude Summarize Buildkite Plugin [![Build status](https://badge.buildkite.com/330a0fa71656f6f6c2bedc4812c82021b825bfd7c7125153de.svg)](https://buildkite.com/buildkite/claude-summarize-plugin?branch=main) 
+# Claude Summarize Buildkite Plugin [![Build status](https://badge.buildkite.com/330a0fa71656f6f6c2bedc4812c82021b825bfd7c7125153de.svg)](https://buildkite.com/buildkite/claude-summarize-plugin?branch=main)
 
 AI-powered build analysis and error diagnosis using Claude. This plugin automatically analyzes build failures, provides root cause analysis, and suggests actionable fixes through Buildkite annotations.
 
@@ -34,7 +34,7 @@ steps:
   - label: "🧪 Run tests"
     command: "npm test"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
 
   # Option 2: Using Buildkite secrets (recommended)
@@ -43,7 +43,7 @@ steps:
   - label: "🧪 More tests"
     command: "npm test"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
 ```
 
@@ -135,7 +135,7 @@ steps:
   - label: "🧪 Run tests"
     command: "npm test"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
 ```
 
@@ -152,7 +152,7 @@ steps:
   - label: "🔍 Analyze entire build"
     command: "npm test"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
           buildkite_api_token: "$$BUILDKITE_API_TOKEN"
           analysis_level: "build"
@@ -168,7 +168,7 @@ steps:
   - label: "🏗️ Build application"
     command: "npm run build"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
           trigger: "always"
           custom_prompt: "Focus on build performance and optimization opportunities"
@@ -183,7 +183,7 @@ steps:
     env:
       CLAUDE_ANALYZE: "true"  # Trigger manual analysis
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
           trigger: "manual"
           custom_prompt: "This is a deployment script. Focus on infrastructure and configuration issues."
@@ -197,7 +197,7 @@ steps:
   - label: "🏗️ Build with performance tracking"
     command: "npm run build"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
           compare_builds: true
           comparison_range: 10
@@ -217,21 +217,21 @@ steps:
   - label: "🔍 Lint code"
     command: "npm run lint"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
           custom_prompt: "Focus on code quality and style issues"
 
   - label: "🧪 Run tests"
     command: "npm test"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
           custom_prompt: "Focus on test failures and coverage issues"
 
   - label: "🏗️ Build production"
     command: "npm run build:prod"
     plugins:
-      - claude-summarize#v1.0.0:
+      - claude-summarize#v1.1.0:
           api_key: "$$ANTHROPIC_API_KEY"
           trigger: "always"
           custom_prompt: "Focus on build optimization and bundle analysis"
