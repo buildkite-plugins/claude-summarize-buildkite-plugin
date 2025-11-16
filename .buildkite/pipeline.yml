@@ -9,7 +9,7 @@ steps:
 
   - label: ":test_tube: Tests"
     plugins:
-      - docker-compose#v5.10.0:
+      - docker-compose#v5.12.1:
           run: tests
           config: compose.yaml
 
