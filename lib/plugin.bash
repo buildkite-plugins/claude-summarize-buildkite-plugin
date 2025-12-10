@@ -115,6 +115,8 @@ function call_claude_api() {
   local base_url
   base_url=$(plugin_read_config ANTHROPIC_BASE_URL "https://api.anthropic.com")
 
+  echo "Checking connectivity to Claude API at ${base_url}/v1/ping..." >&2
+
   if ! curl -s --max-time 5 -o /dev/null "${base_url}/v1/ping"; then
     echo "Error: Cannot reach Anthropic API. Please check your network connectivity." >&2
     echo "Error: Network connectivity issue - cannot reach Anthropic API" > "${response_file}"
