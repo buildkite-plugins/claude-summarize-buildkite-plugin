@@ -57,6 +57,9 @@ configuration:
       type: integer
       description: Number of previous builds to compare against for build time analysis
       default: 5
+    headers:
+      type: object
+      description: Custom HTTP headers to include in Claude API requests. Provide as key-value pairs.
 
 
   required: [api_key]

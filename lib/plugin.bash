@@ -98,6 +98,7 @@ function call_claude_api() {
   local prompt="$3"
   local timeout="${4:-60}"
   local base_url="${5:-https://api.anthropic.com}"
+  local headers_prefix="${6:-}"
 
   local response_file="/tmp/claude_response_${BUILDKITE_BUILD_ID}.json"
   local debug_file="/tmp/claude_debug_${BUILDKITE_BUILD_ID}.txt"
@@ -147,6 +148,19 @@ function call_claude_api() {
       ]
     }' > "${payload_file}"
 
+  # Build custom headers array
+  local custom_headers=()
+  if [ -n "${headers_prefix}" ]; then
+    # Read all custom headers from environment variables
+    for var in $(env | grep "^${headers_prefix}_" | cut -d= -f1); do
+      local header_name="${var#${headers_prefix}_}"
+      local header_value="${!var}"
+      # Convert underscores to hyphens in header name
+      header_name=$(echo "${header_name}" | tr '_' '-')
+      custom_headers+=("-H" "${header_name}: ${header_value}")
+    done
+  fi
+
   # Make API call silently but log any errors
   local http_code
   echo "Calling Claude API..." >&2
@@ -155,6 +169,7 @@ function call_claude_api() {
     -H "Content-Type: application/json" \
     -H "x-api-key: ${api_key}" \
     -H "anthropic-version: 2023-06-01" \
+    "${custom_headers[@]+"${custom_headers[@]}"}" \
     -d "@${payload_file}" \
     "${base_url}/v1/messages" \
     -o "${response_file}" 2>> "${debug_file}")
@@ -466,6 +481,7 @@ function analyze_build_failure() {
   local analysis_level="${7:-step}"
   local compare_builds="${8:-false}"
   local comparison_range="${9:-5}"
+  local headers_prefix="${10:-}"
 
   # Get build information
   local build_info="Build: ${BUILDKITE_PIPELINE_SLUG} #${BUILDKITE_BUILD_NUMBER}
@@ -713,7 +729,7 @@ ${custom_prompt}"
 
   # Call Claude API
   local response_file
-  if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}" "${base_url}"); then
+  if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}" "${base_url}" "${headers_prefix}"); then
     local analysis
     analysis=$(extract_claude_response "${response_file}")
     echo "${analysis}"

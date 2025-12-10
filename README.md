@@ -69,6 +69,17 @@ Use this to point to alternative endpoints like:
 - Proxy servers
 - Development/testing environments
 
+#### `headers` (object)
+
+Custom HTTP headers to include in Claude API requests. Provide as key-value pairs.
+
+Example:
+```yaml
+headers:
+  X-Custom-Header: "value"
+  X-Request-ID: "$$BUILDKITE_BUILD_ID"
+```
+
 #### `model` (string)
 
 Claude model to use for analysis. Default: `claude-3-7-sonnet-20250219`
@@ -209,6 +220,27 @@ When `compare_builds` is enabled, Claude will:
 - Identify performance trends and anomalies
 - Suggest optimizations for slow builds
 - Highlight significant performance changes
+
+### Custom Headers
+
+```yaml
+steps:
+  - label: "🧪 Run tests with custom headers"
+    command: "npm test"
+    plugins:
+      - claude-summarize#v1.1.0:
+          api_key: "$$ANTHROPIC_API_KEY"
+          headers:
+            X-Request-ID: "$$BUILDKITE_BUILD_ID"
+            X-Organization: "my-org"
+            X-Pipeline: "$$BUILDKITE_PIPELINE_SLUG"
+```
+
+Custom headers are useful for:
+- Adding request IDs for tracking and debugging
+- Including organization or team identifiers
+- Passing additional metadata to custom Claude API endpoints
+- Supporting custom authentication schemes when using proxy servers
 
 ### Multiple Steps with Different Configurations
 
