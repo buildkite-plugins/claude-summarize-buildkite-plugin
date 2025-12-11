@@ -173,18 +173,6 @@ function call_claude_api() {
   local http_code
   echo "Calling Claude API..." >&2
 
-  # Build the curl command for debugging
-  local curl_cmd="curl -s -w '%{http_code}' --max-time ${timeout} -H 'Content-Type: application/json' -H 'x-api-key: ${api_key}' -H 'anthropic-version: 2023-06-01'"
-  for header in "${custom_headers[@]+"${custom_headers[@]}"}"; do
-    if [ -n "$header" ]; then
-      curl_cmd="${curl_cmd} '${header}'"
-    fi
-  done
-  curl_cmd="${curl_cmd} -d @${payload_file} ${base_url}/v1/messages -o ${response_file}"
-
-  # echo "Debug: Executing curl command:" >&2
-  # echo "${curl_cmd}" >&2
-
   http_code=$(curl -s -w "%{http_code}" \
     --max-time "${timeout}" \
     -H "Content-Type: application/json" \
