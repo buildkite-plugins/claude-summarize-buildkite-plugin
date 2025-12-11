@@ -752,7 +752,7 @@ ${custom_prompt}"
 
   # Call Claude API
   local response_file
-  if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}" "${base_url}" "${headers_prefix}"); then
+  if response_file=$(call_claude_api "${ANTHROPIC_API_KEY}" "${model}" "${full_prompt}" "${timeout}" "${base_url}" "${headers_prefix}"); then
     local analysis
     analysis=$(extract_claude_response "${response_file}")
     echo "${analysis}"
