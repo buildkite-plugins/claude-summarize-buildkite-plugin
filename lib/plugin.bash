@@ -111,16 +111,19 @@ function call_claude_api() {
     return 0
   fi
 
-  # Check if we can reach the API endpoint
+  # Check if we can reach the API endpoint (only for default Anthropic URL)
   local base_url
   base_url=$(plugin_read_config ANTHROPIC_BASE_URL "https://api.anthropic.com")
 
-  echo "Checking connectivity to Claude API at ${base_url}/v1/ping..." >&2
+  # Only check ping endpoint for official Anthropic API
+  if [ "${base_url}" = "https://api.anthropic.com" ]; then
+    echo "Checking connectivity to Claude API at ${base_url}/v1/ping..." >&2
 
-  if ! curl -s --max-time 5 -o /dev/null "${base_url}/v1/ping"; then
-    echo "Error: Cannot reach Anthropic API. Please check your network connectivity." >&2
-    echo "Error: Network connectivity issue - cannot reach Anthropic API" > "${response_file}"
-    return 1
+    if ! curl -s --max-time 5 -o /dev/null "${base_url}/v1/ping"; then
+      echo "Error: Cannot reach Anthropic API. Please check your network connectivity." >&2
+      echo "Error: Network connectivity issue - cannot reach Anthropic API" > "${response_file}"
+      return 1
+    fi
   fi
 
   # Initialize debug file
@@ -135,10 +138,13 @@ function call_claude_api() {
   # Write prompt to file
   echo "$prompt" > "${prompt_file}"
 
-  # Create JSON payload file using jq with rawfile
+  # Create JSON payload file - escape the prompt content properly
+  local escaped_prompt
+  escaped_prompt=$(jq -Rs . < "${prompt_file}")
+
   jq -n \
     --arg model "$model" \
-    --rawfile prompt "${prompt_file}" \
+    --argjson prompt "${escaped_prompt}" \
     '{
       model: $model,
       max_tokens: 4000,
