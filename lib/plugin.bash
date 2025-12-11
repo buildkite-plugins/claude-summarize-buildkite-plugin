@@ -182,8 +182,8 @@ function call_claude_api() {
   done
   curl_cmd="${curl_cmd} -d @${payload_file} ${base_url}/v1/messages -o ${response_file}"
 
-  echo "Debug: Executing curl command:" >&2
-  echo "${curl_cmd}" >&2
+  # echo "Debug: Executing curl command:" >&2
+  # echo "${curl_cmd}" >&2
 
   http_code=$(curl -s -w "%{http_code}" \
     --max-time "${timeout}" \
