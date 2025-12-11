@@ -19,3 +19,9 @@ echo "FAKE API KEY = ${API_KEY}"
 if [[ -n "$API_KEY" ]]; then
   export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$API_KEY"
 fi
+
+# Use ANTHROPIC_API_KEY if set
+if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
+  echo "Using ANTHROPIC_API_KEY from environment"
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="${ANTHROPIC_API_KEY}"
+fi
