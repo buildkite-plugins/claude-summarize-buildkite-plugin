@@ -9,12 +9,6 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # Get configuration - let shell handle command substitution and variable expansion
 API_KEY=$(plugin_read_config API_KEY "")
 
-echo "all environment variables:"
-printenv | sort
-
-echo "--- :key: Claude Code Plugin (Environment Hook)"
-echo "FAKE API KEY = ${API_KEY}"
-
 # Export API key if provided
 if [[ -n "$API_KEY" ]]; then
   export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$API_KEY"
