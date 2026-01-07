@@ -92,6 +92,15 @@ Level at which to analyze logs. Options: `step`, `build`. These require `buildki
 - `step`: Analyze only the current step's logs
 - `build`: Analyze logs from all jobs in the entire build
 
+#### `build_log_mode` (string)
+
+When `analysis_level` is `build`, controls which job logs to fetch. Options: `failed`, `all`. Default: `failed`
+
+- `failed`: Only fetch logs from failed jobs (reduces token usage significantly for large builds)
+- `all`: Fetch logs from all jobs in the build
+
+This option helps avoid hitting Claude API token limits when analyzing builds with many jobs. With `failed` mode, the plugin includes a summary of all jobs (with their pass/fail status) but only fetches detailed logs for failed jobs.
+
 #### `max_log_lines` (integer)
 
 Maximum number of log lines to send to Claude for analysis. Default: `1000`
@@ -160,6 +169,20 @@ steps:
 ```
 
 With `analysis_level: "build"`, Claude will analyze logs from all jobs in the build, providing insights across the entire pipeline.
+
+By default, only logs from **failed jobs** are fetched to reduce token usage. If you need logs from all jobs, set `build_log_mode: "all"`:
+
+```yaml
+steps:
+  - label: "🔍 Analyze entire build (all jobs)"
+    command: "npm test"
+    plugins:
+      - claude-summarize#v1.1.0:
+          api_key: "$$ANTHROPIC_API_KEY"
+          buildkite_api_token: "$$BUILDKITE_API_TOKEN"
+          analysis_level: "build"
+          build_log_mode: "all"
+```
 
 ### Always Analyze Builds
 
