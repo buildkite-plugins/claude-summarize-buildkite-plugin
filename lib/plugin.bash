@@ -77,7 +77,7 @@ function plugin_read_config() {
 function get_build_logs() {
   local max_lines="${1:-1000}"
   local analysis_level="${2:-step}"
-  local build_log_mode="${3:-failed}"
+  local build_log_mode="${3:-all}"
   local api_token
   api_token="$(get_buildkite_api_token)"
 
@@ -467,7 +467,7 @@ function analyze_build_failure() {
   local analysis_level="${7:-step}"
   local compare_builds="${8:-false}"
   local comparison_range="${9:-5}"
-  local build_log_mode="${10:-failed}"
+  local build_log_mode="${10:-all}"
 
   # Get build information
   local build_info="Build: ${BUILDKITE_PIPELINE_SLUG} #${BUILDKITE_BUILD_NUMBER}

@@ -51,7 +51,7 @@ function get_build_logs_internal() {
   local api_token="$1"
   local max_lines="$2"
   local log_file="$3"
-  local build_log_mode="${4:-failed}"
+  local build_log_mode="${4:-all}"
 
   # Validate parameters
   if [ -z "${api_token}" ] || [ -z "${max_lines}" ] || [ -z "${log_file}" ]; then
@@ -276,7 +276,7 @@ function fetch_build_logs() {
   local api_token="$1"
   local max_lines="$2"
   local analysis_level="$3"
-  local build_log_mode="${4:-failed}"
+  local build_log_mode="${4:-all}"
 
   # Validate parameters
   if [ -z "${max_lines}" ] || [ -z "${analysis_level}" ]; then

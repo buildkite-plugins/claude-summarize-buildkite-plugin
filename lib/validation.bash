@@ -10,7 +10,7 @@ function validate_configuration() {
   local analysis_level="$4"
   local compare_builds="$5"
   local buildkite_api_token="$6"
-  local build_log_mode="${7:-failed}"
+  local build_log_mode="${7:-all}"
 
   local errors=0
 

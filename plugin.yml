@@ -34,7 +34,7 @@ configuration:
       type: string
       description: When analysis_level is 'build', controls which job logs to fetch - 'failed' for only failed jobs (reduces token usage), 'all' for all jobs
       enum: ["failed", "all"]
-      default: failed
+      default: all
     max_log_lines:
       type: integer
       description: Maximum number of log lines to analyze
