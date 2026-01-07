@@ -13,7 +13,7 @@ setup() {
 }
 
 @test "Validate configuration succeeds with valid inputs" {
-  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "step" "false" ""
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "step" "false" "" "failed"
 
   assert_success
   refute_output --partial "Error"
@@ -104,4 +104,18 @@ setup() {
 
   assert_failure
   assert_output --partial "Error: jq is required"
+}
+
+@test "Validate configuration fails with invalid build_log_mode" {
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "build" "false" "" "invalid-mode"
+
+  assert_failure
+  assert_output --partial "Error: build_log_mode must be one of: failed, all"
+}
+
+@test "Validate configuration succeeds with build_log_mode all" {
+  run validate_configuration "sk-ant-test-key" "claude-3-opus" "on-failure" "build" "false" "bk-token" "all"
+
+  assert_success
+  refute_output --partial "Error"
 }

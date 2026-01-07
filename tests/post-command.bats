@@ -219,3 +219,36 @@ teardown() {
   assert_output --partial 'Claude Code Plugin (Post-Command)'
   assert_output --partial 'Triggering Claude analysis'
 }
+
+@test "Plugin shows build_log_mode when analysis_level is build" {
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANALYSIS_LEVEL='build'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_BUILDKITE_API_TOKEN='bk-test-token'
+
+  run "$PWD"/hooks/post-command
+
+  assert_success
+  assert_output --partial 'Analysis Level: build'
+  assert_output --partial 'Build Log Mode: failed'
+}
+
+@test "Plugin uses custom build_log_mode" {
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANALYSIS_LEVEL='build'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_BUILD_LOG_MODE='all'
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_BUILDKITE_API_TOKEN='bk-test-token'
+
+  run "$PWD"/hooks/post-command
+
+  assert_success
+  assert_output --partial 'Analysis Level: build'
+  assert_output --partial 'Build Log Mode: all'
+}
+
+@test "Plugin does not show build_log_mode for step analysis" {
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANALYSIS_LEVEL='step'
+
+  run "$PWD"/hooks/post-command
+
+  assert_success
+  assert_output --partial 'Analysis Level: step'
+  refute_output --partial 'Build Log Mode:'
+}
