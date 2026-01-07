@@ -10,30 +10,37 @@ function validate_configuration() {
   local analysis_level="$4"
   local compare_builds="$5"
   local buildkite_api_token="$6"
-  
+  local build_log_mode="${7:-failed}"
+
   local errors=0
-  
+
   # Check required configuration
   if [ -z "${api_key}" ]; then
     echo "❌ Error: api_key is required for Claude Code plugin" >&2
     errors=$((errors + 1))
   fi
-  
+
   # Validate model format
   if [[ ! "${model}" =~ ^claude- ]]; then
     echo "❌ Error: model must be a valid Claude model starting with 'claude-'" >&2
     errors=$((errors + 1))
   fi
-  
+
   # Validate trigger
   if [[ ! "${trigger}" =~ ^(on-failure|always|manual)$ ]]; then
     echo "❌ Error: trigger must be one of: on-failure, always, manual. Got: ${trigger}" >&2
     errors=$((errors + 1))
   fi
-  
+
   # Validate analysis_level
   if [[ ! "${analysis_level}" =~ ^(step|build)$ ]]; then
     echo "❌ Error: analysis_level must be one of: step, build. Got: ${analysis_level}" >&2
+    errors=$((errors + 1))
+  fi
+
+  # Validate build_log_mode
+  if [[ ! "${build_log_mode}" =~ ^(failed|all)$ ]]; then
+    echo "❌ Error: build_log_mode must be one of: failed, all. Got: ${build_log_mode}" >&2
     errors=$((errors + 1))
   fi
   

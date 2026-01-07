@@ -51,6 +51,7 @@ function get_build_logs_internal() {
   local api_token="$1"
   local max_lines="$2"
   local log_file="$3"
+  local build_log_mode="${4:-failed}"
 
   # Validate parameters
   if [ -z "${api_token}" ] || [ -z "${max_lines}" ] || [ -z "${log_file}" ]; then
@@ -63,14 +64,40 @@ function get_build_logs_internal() {
   local build_data_file="/tmp/build_${BUILDKITE_BUILD_ID}.json"
 
   if curl -s -f -H "Authorization: Bearer ${api_token}" "${build_url}" > "${build_data_file}" 2>/dev/null; then
-    # Extract job IDs from the build
+    # Extract job IDs from the build based on build_log_mode
     if command -v jq >/dev/null 2>&1; then
       local job_ids
-      job_ids=$(jq -r '.jobs[].id' "${build_data_file}" 2>/dev/null)
+
+      if [ "${build_log_mode}" = "failed" ]; then
+        # Filter for jobs with non-zero exit_status (failed jobs only)
+        job_ids=$(jq -r '.jobs[] | select(.exit_status != null and .exit_status != 0) | .id' "${build_data_file}" 2>/dev/null)
+
+        # If no failed jobs found, fall back to getting all completed jobs
+        if [ -z "${job_ids}" ]; then
+          job_ids=$(jq -r '.jobs[] | select(.exit_status != null) | .id' "${build_data_file}" 2>/dev/null)
+        fi
+      else
+        job_ids=$(jq -r '.jobs[].id' "${build_data_file}" 2>/dev/null)
+      fi
 
       if [ -n "${job_ids}" ]; then
         # Create a combined log file
         : > "${log_file}"
+
+        # Add a summary header showing all jobs and their status
+        {
+          echo "========================================"
+          echo "BUILD JOBS SUMMARY"
+          echo "========================================"
+          jq -r '.jobs[] | "- \(.name // "Unnamed job"): exit_status=\(.exit_status // "pending"), state=\(.state // "unknown")"' "${build_data_file}" 2>/dev/null
+          echo ""
+          if [ "${build_log_mode}" = "failed" ]; then
+            echo "Note: Fetching detailed logs only for FAILED jobs to reduce token usage."
+          else
+            echo "Note: Fetching detailed logs for ALL completed jobs."
+          fi
+          echo ""
+        } >> "${log_file}"
 
         # Process each job
         local job_count=0
@@ -249,6 +276,7 @@ function fetch_build_logs() {
   local api_token="$1"
   local max_lines="$2"
   local analysis_level="$3"
+  local build_log_mode="${4:-failed}"
 
   # Validate parameters
   if [ -z "${max_lines}" ] || [ -z "${analysis_level}" ]; then
@@ -269,7 +297,7 @@ function fetch_build_logs() {
   # For build-level analysis, try to get all jobs in the build
   if [ "${analysis_level}" = "build" ]; then
     if [ -n "${api_token}" ]; then
-      if get_build_logs_internal "${api_token}" "${max_lines}" "${log_file}"; then
+      if get_build_logs_internal "${api_token}" "${max_lines}" "${log_file}" "${build_log_mode}"; then
         echo "${log_file}"
         return 0
       fi

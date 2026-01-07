@@ -30,6 +30,11 @@ configuration:
       description: Level at which to analyze logs - 'step' for current step only, 'build' for all jobs in the build
       enum: ["step", "build"]
       default: step
+    build_log_mode:
+      type: string
+      description: When analysis_level is 'build', controls which job logs to fetch - 'failed' for only failed jobs (reduces token usage), 'all' for all jobs
+      enum: ["failed", "all"]
+      default: failed
     max_log_lines:
       type: integer
       description: Maximum number of log lines to analyze
