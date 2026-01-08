@@ -1,5 +1,7 @@
 # Claude Summarize Buildkite Plugin [![Build status](https://badge.buildkite.com/330a0fa71656f6f6c2bedc4812c82021b825bfd7c7125153de.svg)](https://buildkite.com/buildkite/claude-summarize-plugin?branch=main)
 
+> ⚠️ This plugin is no longer actively developed. Buildkite now supports [hosted models](https://buildkite.com/docs/apis/model-providers) which provide a smoother experience with AI in pipelines.
+
 AI-powered build analysis and error diagnosis using Claude. This plugin automatically analyzes build failures, provides root cause analysis, and suggests actionable fixes through Buildkite annotations.
 
 ## Features
