@@ -98,6 +98,7 @@ function call_claude_api() {
   local prompt="$3"
   local timeout="${4:-60}"
   local base_url="${5:-https://api.anthropic.com}"
+  local headers_prefix="${6:-}"
 
   local response_file="/tmp/claude_response_${BUILDKITE_BUILD_ID}.json"
   local debug_file="/tmp/claude_debug_${BUILDKITE_BUILD_ID}.txt"
@@ -110,14 +111,19 @@ function call_claude_api() {
     return 0
   fi
 
-  # Check if we can reach the API endpoint
+  # Check if we can reach the API endpoint (only for default Anthropic URL)
   local base_url
   base_url=$(plugin_read_config ANTHROPIC_BASE_URL "https://api.anthropic.com")
 
-  if ! curl -s --max-time 5 -o /dev/null "${base_url}/v1/ping"; then
-    echo "Error: Cannot reach Anthropic API. Please check your network connectivity." >&2
-    echo "Error: Network connectivity issue - cannot reach Anthropic API" > "${response_file}"
-    return 1
+  # Only check ping endpoint for official Anthropic API
+  if [ "${base_url}" = "https://api.anthropic.com" ]; then
+    echo "Checking connectivity to Claude API at ${base_url}/v1/ping..." >&2
+
+    if ! curl -s --max-time 5 -o /dev/null "${base_url}/v1/ping"; then
+      echo "Error: Cannot reach Anthropic API. Please check your network connectivity." >&2
+      echo "Error: Network connectivity issue - cannot reach Anthropic API" > "${response_file}"
+      return 1
+    fi
   fi
 
   # Initialize debug file
@@ -132,10 +138,13 @@ function call_claude_api() {
   # Write prompt to file
   echo "$prompt" > "${prompt_file}"
 
-  # Create JSON payload file using jq with rawfile
+  # Create JSON payload file - escape the prompt content properly
+  local escaped_prompt
+  escaped_prompt=$(jq -Rs . < "${prompt_file}")
+
   jq -n \
     --arg model "$model" \
-    --rawfile prompt "${prompt_file}" \
+    --argjson prompt "${escaped_prompt}" \
     '{
       model: $model,
       max_tokens: 4000,
@@ -147,19 +156,36 @@ function call_claude_api() {
       ]
     }' > "${payload_file}"
 
+  # Build custom headers array
+  local custom_headers=()
+  if [ -n "${headers_prefix}" ]; then
+    # Read all custom headers from environment variables
+    for var in $(env | grep "^${headers_prefix}_" | cut -d= -f1); do
+      local header_name="${var#${headers_prefix}_}"
+      local header_value="${!var}"
+      # Convert underscores to hyphens in header name
+      header_name=$(echo "${header_name}" | tr '_' '-')
+      custom_headers+=("-H" "${header_name}: ${header_value}")
+    done
+  fi
+
   # Make API call silently but log any errors
   local http_code
   echo "Calling Claude API..." >&2
+
   http_code=$(curl -s -w "%{http_code}" \
     --max-time "${timeout}" \
     -H "Content-Type: application/json" \
     -H "x-api-key: ${api_key}" \
     -H "anthropic-version: 2023-06-01" \
+    "${custom_headers[@]+"${custom_headers[@]}"}" \
     -d "@${payload_file}" \
     "${base_url}/v1/messages" \
     -o "${response_file}" 2>> "${debug_file}")
   if [ "${http_code}" -ne 200 ]; then
     echo "Claude API call failed with HTTP code ${http_code}" >&2
+    echo "Response content:" >&2
+    cat "${response_file}" >&2
   fi
 
   # Return the response file path
@@ -466,6 +492,7 @@ function analyze_build_failure() {
   local analysis_level="${7:-step}"
   local compare_builds="${8:-false}"
   local comparison_range="${9:-5}"
+  local headers_prefix="${10:-}"
 
   # Get build information
   local build_info="Build: ${BUILDKITE_PIPELINE_SLUG} #${BUILDKITE_BUILD_NUMBER}
@@ -713,7 +740,7 @@ ${custom_prompt}"
 
   # Call Claude API
   local response_file
-  if response_file=$(call_claude_api "${api_key}" "${model}" "${full_prompt}" "${timeout}" "${base_url}"); then
+  if response_file=$(call_claude_api "${ANTHROPIC_API_KEY}" "${model}" "${full_prompt}" "${timeout}" "${base_url}" "${headers_prefix}"); then
     local analysis
     analysis=$(extract_claude_response "${response_file}")
     echo "${analysis}"
